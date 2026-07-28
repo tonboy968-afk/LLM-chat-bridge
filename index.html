@@ -998,6 +998,45 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const next = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('lmstudio-chat-theme', next);
+            document.getElementById('themeToggle').innerHTML = isDark ? '&#127769;' : '&#9788;';
+        }
+
+        function applyTheme() {
+            const saved = localStorage.getItem('lmstudio-chat-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            document.getElementById('themeToggle').innerHTML = saved === 'dark' ? '&#9788;' : '&#127769;';
+        }
+
+        function copyMessage(content, btn) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(content).then(function() {
+                    const orig = btn.textContent;
+                    btn.textContent = '\u2713';
+                    setTimeout(function() { btn.textContent = orig; }, 1200);
+                }).catch(function() { doCopyFallback(content, btn); });
+            } else {
+                doCopyFallback(content, btn);
+            }
+        }
+
+        function doCopyFallback(content, btn) {
+            const ta = document.createElement('textarea');
+            ta.value = content;
+            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            const orig = btn.textContent;
+            btn.textContent = '\u2713';
+            setTimeout(function() { btn.textContent = orig; }, 1200);
+        }
+
         chatContainer.addEventListener('scroll', () => {
             const isNearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
             scrollToBottomBtn.classList.toggle('visible', !isNearBottom);
