@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LM Studio Chat</title>
-    <meta name="description" content="将本地模型挂载到局域网，全屋所有设备共享LMstudio模型聊天，适配手机、平板、笔记本。">
     <style>
         * {
             margin: 0;
@@ -24,30 +23,24 @@
             --border-color: #e2e8f0;
             --text-color: #334155;
             --text-secondary: #64748b;
-            --settings-bg: #f1f5f9;
-            --header-bg: #2563eb;
             --role-bar-bg: #f8fafc;
-            --copy-btn-color: #64748b;
-            --copy-btn-hover: #334155;
+            --settings-bg: #f1f5f9;
         }
 
         [data-theme="dark"] {
             --primary-color: #3b82f6;
-            --primary-hover: #60a5fa;
+            --primary-hover: #2563eb;
             --bg-color: #0f172a;
             --chat-bg: #1e293b;
             --user-msg-bg: #3b82f6;
             --user-msg-color: #ffffff;
             --assistant-msg-bg: #334155;
-            --assistant-msg-color: #f1f5f9;
-            --border-color: #475569;
+            --assistant-msg-color: #e2e8f0;
+            --border-color: #334155;
             --text-color: #f1f5f9;
             --text-secondary: #94a3b8;
+            --role-bar-bg: #1e293b;
             --settings-bg: #1e293b;
-            --header-bg: #1e293b;
-            --role-bar-bg: #0f172a;
-            --copy-btn-color: #94a3b8;
-            --copy-btn-hover: #f1f5f9;
         }
 
         body {
@@ -120,38 +113,12 @@
             background-color: var(--user-msg-bg);
             color: var(--user-msg-color);
             border-bottom-right-radius: 4px;
-            position: relative;
         }
 
         .message.assistant .message-content {
             background-color: var(--assistant-msg-bg);
             color: var(--assistant-msg-color);
             border-bottom-left-radius: 4px;
-            position: relative;
-        }
-
-        .msg-copy-btn {
-            position: absolute;
-            top: 6px;
-            right: 8px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 0.75rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: var(--copy-btn-color);
-            opacity: 0;
-            transition: opacity 0.15s, color 0.15s;
-        }
-
-        .message:hover .msg-copy-btn,
-        .msg-copy-btn:focus {
-            opacity: 1;
-        }
-
-        .msg-copy-btn:hover {
-            color: var(--copy-btn-hover);
         }
 
         .message-label {
@@ -373,6 +340,11 @@
             background-color: rgba(255, 255, 255, 0.3);
         }
 
+        .toolbar button#themeToggle {
+            font-size: 1.1rem;
+            padding: 8px 10px;
+        }
+
         .role-bar {
             padding: 10px 20px;
             background-color: var(--role-bar-bg);
@@ -395,7 +367,7 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 0.875rem;
-            background-color: white;
+            background-color: var(--chat-bg);
         }
 
         .role-bar select:focus {
@@ -426,7 +398,7 @@
             align-items: center;
             padding: 10px 12px;
             border-bottom: 1px solid var(--border-color);
-            background-color: white;
+            background-color: var(--chat-bg);
         }
 
         .role-item:last-child {
@@ -434,7 +406,7 @@
         }
 
         .role-item:hover {
-            background-color: var(--settings-bg);
+            background-color: var(--bg-color);
         }
 
         .role-item-info {
@@ -470,7 +442,7 @@
         }
 
         .role-item-actions button:hover {
-            background-color: #f1f5f9;
+            background-color: var(--bg-color);
         }
 
         .role-item-actions button.delete-btn {
@@ -534,10 +506,6 @@
             .role-info {
                 display: none;
             }
-
-            .msg-copy-btn {
-                opacity: 1;
-            }
         }
 
         @media (max-width: 480px) {
@@ -562,10 +530,6 @@
 
             .input-wrapper button {
                 width: 100%;
-            }
-
-            .msg-copy-btn {
-                opacity: 1;
             }
         }
 
@@ -603,17 +567,25 @@
     <div class="container">
         <div class="header">
             <div>
-                <h1>LM Studio Chat <span style="font-size:0.65em;font-weight:400;opacity:0.7">v1.1.0</span></h1>
+                <h1>LM Studio Chat</h1>
                 <span class="api-status" id="apiStatus">API: http://192.168.10.8:1234</span>
             </div>
             <div class="toolbar">
-                <button id="themeToggle" onclick="toggleTheme()" title="切换主题">&#127769;</button>
+                <button onclick="toggleTheme()" id="themeToggle" title="切换主题">&#9788;</button>
                 <button onclick="toggleSettings()">设置</button>
                 <button onclick="clearChat()">清空对话</button>
             </div>
         </div>
 
         <div class="settings-panel" id="settingsPanel">
+            <div class="settings-section" id="networkShareSection" style="display:none">
+                <h3>局域网访问</h3>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span id="networkUrl" style="flex:1;word-break:break-all;font-size:0.9rem;color:var(--text-color);"></span>
+                    <button onclick="copyNetworkUrl()" id="copyUrlBtn" style="padding:4px 12px;font-size:0.8rem;white-space:nowrap;">复制</button>
+                </div>
+            </div>
+
             <div class="settings-section">
                 <h3>LM Studio 配置</h3>
                 <div class="settings-row">
@@ -750,12 +722,74 @@
             document.getElementById('apiUrl').value = settings.apiUrl || 'http://192.168.10.8:1234';
             document.getElementById('modelName').value = settings.modelName || '';
             document.getElementById('apiStatus').textContent = 'API: ' + (settings.apiUrl || 'http://192.168.10.8:1234');
-            
+
             customRoles = JSON.parse(localStorage.getItem('lmstudio-chat-roles') || '[]');
             currentRoleId = localStorage.getItem('lmstudio-chat-current-role') || 'default';
-            
+
             updateRoleSelects();
             renderRoleList();
+            applyTheme();
+            initNetworkShare();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('lmstudio-chat-theme', next);
+        }
+
+        function applyTheme() {
+            const saved = localStorage.getItem('lmstudio-chat-theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        }
+
+        function getNetworkUrl() {
+            const loc = window.location;
+            const port = loc.port || (loc.protocol === 'https:' ? '443' : '80');
+            return loc.protocol + '//' + loc.hostname + ':' + port + loc.pathname.replace(/\/[^/]*$/, '/lmstudio-chat.html');
+        }
+
+        function copyNetworkUrl() {
+            const url = document.getElementById('networkUrl').textContent;
+            const btn = document.getElementById('copyUrlBtn');
+            if (!url || url === '获取中...') return;
+            const done = function() {
+                const orig = btn.textContent;
+                btn.textContent = '已复制';
+                btn.style.color = '#22c55e';
+                setTimeout(function() { btn.textContent = orig; btn.style.color = ''; }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(done).catch(function() { fallbackCopy(url); done(); });
+            } else {
+                fallbackCopy(url);
+                done();
+            }
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
+
+        function initNetworkShare() {
+            const section = document.getElementById('networkShareSection');
+            if (!section) return;
+            // 只有通过服务器访问（非 file://）才显示
+            if (window.location.protocol === 'file:') {
+                section.style.display = 'none';
+                return;
+            }
+            section.style.display = '';
+            document.getElementById('networkUrl').textContent = getNetworkUrl();
         }
 
         function saveSettings() {
@@ -964,11 +998,9 @@
             messages.forEach((msg, index) => {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${msg.role}`;
-                var escapedContent = escapeHtml(msg.content);
-                var copyLabel = navigator.userAgent.indexOf('Mobile') >= 0 ? '\u590d\u5236' : '\u590d\u5236';
                 messageDiv.innerHTML = `
                     <div class="message-label">${msg.role === 'user' ? '你' : 'AI'}</div>
-                    <div class="message-content">${escapedContent}<button class="msg-copy-btn" onclick="copyMessage(${JSON.stringify(msg.content).replace(/'/g, "\'")}, this)" title="复制">${copyLabel}</button></div>
+                    <div class="message-content">${escapeHtml(msg.content)}</div>
                 `;
                 chatContainer.appendChild(messageDiv);
             });
@@ -996,45 +1028,6 @@
 
         function scrollToBottom() {
             chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        function toggleTheme() {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const next = isDark ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('lmstudio-chat-theme', next);
-            document.getElementById('themeToggle').innerHTML = isDark ? '&#127769;' : '&#9788;';
-        }
-
-        function applyTheme() {
-            const saved = localStorage.getItem('lmstudio-chat-theme') || 'light';
-            document.documentElement.setAttribute('data-theme', saved);
-            document.getElementById('themeToggle').innerHTML = saved === 'dark' ? '&#9788;' : '&#127769;';
-        }
-
-        function copyMessage(content, btn) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(content).then(function() {
-                    const orig = btn.textContent;
-                    btn.textContent = '\u2713';
-                    setTimeout(function() { btn.textContent = orig; }, 1200);
-                }).catch(function() { doCopyFallback(content, btn); });
-            } else {
-                doCopyFallback(content, btn);
-            }
-        }
-
-        function doCopyFallback(content, btn) {
-            const ta = document.createElement('textarea');
-            ta.value = content;
-            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-            const orig = btn.textContent;
-            btn.textContent = '\u2713';
-            setTimeout(function() { btn.textContent = orig; }, 1200);
         }
 
         chatContainer.addEventListener('scroll', () => {
@@ -1159,7 +1152,6 @@
             }
         }
 
-        applyTheme();
         loadSettings();
         loadMessages();
         resetRoleForm();
