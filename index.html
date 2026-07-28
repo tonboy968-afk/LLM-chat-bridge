@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LM Studio Chat</title>
+    <meta name="description" content="将本地模型挂载到局域网，全屋所有设备共享LMstudio模型聊天，适配手机、平板、笔记本。">
     <style>
         * {
             margin: 0;
@@ -23,6 +24,30 @@
             --border-color: #e2e8f0;
             --text-color: #334155;
             --text-secondary: #64748b;
+            --settings-bg: #f1f5f9;
+            --header-bg: #2563eb;
+            --role-bar-bg: #f8fafc;
+            --copy-btn-color: #64748b;
+            --copy-btn-hover: #334155;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #3b82f6;
+            --primary-hover: #60a5fa;
+            --bg-color: #0f172a;
+            --chat-bg: #1e293b;
+            --user-msg-bg: #3b82f6;
+            --user-msg-color: #ffffff;
+            --assistant-msg-bg: #334155;
+            --assistant-msg-color: #f1f5f9;
+            --border-color: #475569;
+            --text-color: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --settings-bg: #1e293b;
+            --header-bg: #1e293b;
+            --role-bar-bg: #0f172a;
+            --copy-btn-color: #94a3b8;
+            --copy-btn-hover: #f1f5f9;
         }
 
         body {
@@ -95,12 +120,38 @@
             background-color: var(--user-msg-bg);
             color: var(--user-msg-color);
             border-bottom-right-radius: 4px;
+            position: relative;
         }
 
         .message.assistant .message-content {
             background-color: var(--assistant-msg-bg);
             color: var(--assistant-msg-color);
             border-bottom-left-radius: 4px;
+            position: relative;
+        }
+
+        .msg-copy-btn {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--copy-btn-color);
+            opacity: 0;
+            transition: opacity 0.15s, color 0.15s;
+        }
+
+        .message:hover .msg-copy-btn,
+        .msg-copy-btn:focus {
+            opacity: 1;
+        }
+
+        .msg-copy-btn:hover {
+            color: var(--copy-btn-hover);
         }
 
         .message-label {
@@ -195,7 +246,7 @@
 
         .settings-panel {
             padding: 16px 20px;
-            background-color: #f1f5f9;
+            background-color: var(--settings-bg);
             border-bottom: 1px solid var(--border-color);
             display: none;
             max-height: 70vh;
@@ -324,7 +375,7 @@
 
         .role-bar {
             padding: 10px 20px;
-            background-color: #f8fafc;
+            background-color: var(--role-bar-bg);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
@@ -383,7 +434,7 @@
         }
 
         .role-item:hover {
-            background-color: #f8fafc;
+            background-color: var(--settings-bg);
         }
 
         .role-item-info {
@@ -483,6 +534,10 @@
             .role-info {
                 display: none;
             }
+
+            .msg-copy-btn {
+                opacity: 1;
+            }
         }
 
         @media (max-width: 480px) {
@@ -507,6 +562,10 @@
 
             .input-wrapper button {
                 width: 100%;
+            }
+
+            .msg-copy-btn {
+                opacity: 1;
             }
         }
 
@@ -544,10 +603,11 @@
     <div class="container">
         <div class="header">
             <div>
-                <h1>LM Studio Chat</h1>
+                <h1>LM Studio Chat <span style="font-size:0.65em;font-weight:400;opacity:0.7">v1.1.0</span></h1>
                 <span class="api-status" id="apiStatus">API: http://192.168.10.8:1234</span>
             </div>
             <div class="toolbar">
+                <button id="themeToggle" onclick="toggleTheme()" title="切换主题">&#127769;</button>
                 <button onclick="toggleSettings()">设置</button>
                 <button onclick="clearChat()">清空对话</button>
             </div>
@@ -904,9 +964,11 @@
             messages.forEach((msg, index) => {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${msg.role}`;
+                var escapedContent = escapeHtml(msg.content);
+                var copyLabel = navigator.userAgent.indexOf('Mobile') >= 0 ? '\u590d\u5236' : '\u590d\u5236';
                 messageDiv.innerHTML = `
                     <div class="message-label">${msg.role === 'user' ? '你' : 'AI'}</div>
-                    <div class="message-content">${escapeHtml(msg.content)}</div>
+                    <div class="message-content">${escapedContent}<button class="msg-copy-btn" onclick="copyMessage(${JSON.stringify(msg.content).replace(/'/g, "\'")}, this)" title="复制">${copyLabel}</button></div>
                 `;
                 chatContainer.appendChild(messageDiv);
             });
@@ -1058,6 +1120,7 @@
             }
         }
 
+        applyTheme();
         loadSettings();
         loadMessages();
         resetRoleForm();
