@@ -1,4 +1,6 @@
 # 🚀 LM Studio Chat Lite
+ ![License](https://img.shields.io/badge/license-MIT-blue)
+ ![LM Studio](https://img.shields.io/badge/LM%20Studio-compatible-green)
 
 > 一个轻量级、开箱即用的本地AI聊天界面，让LM Studio的使用变得简单优雅。
 
