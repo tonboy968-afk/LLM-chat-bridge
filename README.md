@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/version-v1.1.0-blue.svg" alt="Version">
+<img src="https://img.shields.io/badge/version-v1.2.0-blue.svg" alt="Version">
 <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Platform">
 
@@ -10,7 +10,7 @@
 
 *一个 HTML 文件，连接本地 LLM，支持多设备共享访问*
 
-[快速开始](#-快速开始) · [功能特性](#-功能特性) · [配置说明](#-配置)
+[快速开始](#-快速开始) · [功能特性](#-功能特性) · [配置说明](#-配置) · [更新日志](#-更新日志)
 
 </div>
 
@@ -75,11 +75,11 @@ python start-chat-server.py
 终端输出：
 ```
 ==================================================
-LM Studio Chat 服务器已启动
+LLM Chat Bridge v1.2.0 服务器已启动
 本机访问: http://localhost:8765/lmstudio-chat.html
 网络访问: http://192.168.10.80:8765/lmstudio-chat.html
 ==================================================
-其他设备请访问上面的'网络访问'地址
+其他设备请访问上面的地址
 按 Ctrl+C 停止服务器
 ==================================================
 ```
@@ -141,6 +141,22 @@ netsh advfirewall firewall add rule name="LLM Chat Bridge" dir=in action=allow p
 2. **端口占用** - 默认端口 8765，可修改 `start-chat-server.py` 中的 `PORT` 变量
 3. **本地模式** - 直接双击 HTML 文件仅支持本机使用，无法局域网访问
 4. **数据安全** - 对话历史保存在浏览器本地存储，清除浏览器数据会丢失
+
+---
+
+## 📝 更新日志
+
+### v1.2.0 (2026-08-24)
+
+- ✨ **改进**: 优化服务器 IP 检测逻辑，支持多网卡环境自动列出所有可用局域网地址
+- 🔧 **修复**: 增加端口重用选项，避免服务器启动时端口被占用报错
+- 📝 **文档**: 更新项目描述和快速开始指南
+
+### v1.1.0
+
+- ✨ 新增 7 个预设角色 + 自定义角色支持
+- 🌙 新增深色模式切换功能
+- 💬 改进多轮对话上下文记忆
 
 ---
 
